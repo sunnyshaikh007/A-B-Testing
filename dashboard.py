@@ -60,12 +60,48 @@ with right:
     st.write(f"Sample-ratio mismatch p-value: **{result.srm_p_value:.4f}**")
     st.write(f"Required sample size: **{needed:,} users per group** for the planning assumptions")
 
+st.subheader("Conversion trend by participant")
+fig, ax = plt.subplots(figsize=(9, 3.5))
+for group, color in [("control", "#64748b"), ("treatment", "#2563eb")]:
+    subset = df[df.group == group].sort_values("user_id")
+    conversions = subset.converted.to_numpy()
+    cumulative = conversions.cumsum() / (1 + pd.Series(range(len(subset))).to_numpy())
+    ax.plot(range(1, len(subset) + 1), cumulative * 100, label=group.title(), color=color)
+ax.set(xlabel="Participants observed in each group", ylabel="Cumulative conversion (%)")
+ax.legend()
+ax.grid(alpha=0.2)
+st.pyplot(fig)
+plt.close(fig)
+st.caption("Early swings are noisy; this plot is descriptive, not permission for repeated unplanned significance testing.")
+
+st.subheader("Estimated conversion lift and uncertainty")
+fig, ax = plt.subplots(figsize=(9, 2.5))
+ax.errorbar([result.absolute_lift * 100], [0],
+            xerr=[[max(0, (result.absolute_lift-result.ci_low)*100)],
+                  [max(0, (result.ci_high-result.absolute_lift)*100)]],
+            fmt="o", capsize=6, markersize=8, color="#2563eb")
+ax.axvline(0, color="#dc2626", linestyle="--", label="No effect")
+ax.set(xlabel="Absolute conversion lift (percentage points)", yticks=[], ylim=(-0.6, 0.6))
+ax.grid(axis="x", alpha=0.2)
+st.pyplot(fig)
+plt.close(fig)
+
 st.subheader("Revenue guardrail")
 e, f, g = st.columns(3)
 e.metric("Control revenue / visitor", f"{result.revenue_control:.2f}")
 f.metric("Treatment revenue / visitor", f"{result.revenue_treatment:.2f}")
 g.metric("Revenue change / visitor", f"{result.revenue_diff:+.2f}")
 st.write(f"Bootstrap {(1-alpha):.0%} CI for change: **{result.revenue_ci_low:+.2f} to {result.revenue_ci_high:+.2f}** (same monetary units as input)")
+
+fig, ax = plt.subplots(figsize=(9, 3.5))
+for group, color in [("control", "#64748b"), ("treatment", "#2563eb")]:
+    purchases = df.loc[(df.group == group) & (df.converted == 1), "revenue"]
+    if not purchases.empty:
+        ax.hist(purchases, bins=25, alpha=0.5, density=True, label=group.title(), color=color)
+ax.set(xlabel="Order revenue among converters", ylabel="Density")
+ax.legend()
+st.pyplot(fig)
+plt.close(fig)
 
 if result.srm_p_value < 0.001:
     st.error("Sample-ratio mismatch detected: investigate randomization and tracking before interpreting effects.")
