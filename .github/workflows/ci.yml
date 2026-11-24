@@ -1,0 +1,26 @@
+name: Python tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run unittest suite
+        run: python -m unittest discover -s tests -v
+      - name: Smoke-test CLI
+        run: |
+          python -m ab_testing.generate --output data/experiment.csv --n-per-group 200
+          python -m ab_testing.analyze --input data/experiment.csv
