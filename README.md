@@ -10,6 +10,7 @@ An end-to-end, reproducible e-commerce experimentation project. It demonstrates 
 - **Planning:** required sample size per group using baseline conversion, minimum detectable effect (MDE), power, and significance level.
 - **Revenue guardrail:** revenue per visitor, with a bootstrap confidence interval.
 - **Interactive dashboard:** Streamlit metrics, charts, and configurable experiment assumptions.
+- **GitHub-viewable chart gallery:** committed SVG charts in [`visualizations/`](visualizations/) that require no installation.
 - **CLI and automated tests:** repeatable outputs and GitHub Actions CI.
 
 > **Data disclaimer:** All example data is simulated. Any result shown by this repository is illustrative, not evidence of a real-world product improvement.
@@ -36,6 +37,18 @@ The dataset is generated locally and is deliberately not committed. For a differ
 3. **Null hypothesis:** treatment and control conversion probabilities are equal (two-sided test).
 4. **Quality gate:** check sample-ratio mismatch against planned 50/50 assignment.
 5. **Decision:** report lift, p-value, interval, revenue guardrail and practical impact together; do not use p-value alone.
+
+## Visualization gallery (simulated example)
+
+These charts render directly on GitHub and use the deterministic default dataset of 5,000 users per variant (seed 42).
+
+![Conversion rate comparison](visualizations/conversion_rates.svg)
+
+![Cumulative conversion rates](visualizations/cumulative_conversion.svg)
+
+![Estimated lift and confidence interval](visualizations/lift_confidence_interval.svg)
+
+The Streamlit dashboard also provides a purchase-revenue distribution and revenue-per-visitor metrics. Regenerate the SVGs with `python -m scripts.generate_visualizations`.
 
 ## Statistical interpretation
 
@@ -68,6 +81,8 @@ ab_testing/
   generate.py       # synthetic user-level experiment data
   analyze.py        # command-line report
 dashboard.py        # Streamlit visual app
+scripts/generate_visualizations.py # deterministic chart exports
+visualizations/     # images visible on GitHub
 tests/test_stats.py # deterministic validation and statistical tests
 .github/workflows/ci.yml
 ```
